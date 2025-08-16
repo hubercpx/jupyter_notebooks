@@ -10,6 +10,7 @@ RUN pip install --no-cache-dir --upgrade pip && \
       "notebook>=7.1,<8" \
       "jupyterlab>=4.2,<5" \
       "jupyter-server>=2.13,<3" \
+      "jupyter_scheduler>=2.11,<3" \
       pandas numpy matplotlib
 
 WORKDIR /app
