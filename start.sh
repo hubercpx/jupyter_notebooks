@@ -1,20 +1,29 @@
 #!/usr/bin/env sh
 set -eu
 
-# Usa un hash directo si lo proporcionas; si no, genera el hash desde la contraseña en texto plano
-if [ -n "${JUPYTER_PASSWORD_HASH:-}" ]; then
-  HASH="$JUPYTER_PASSWORD_HASH"
-elif [ -n "${JUPYTER_PASSWORD:-}" ]; then
-  HASH=$(python - <<'PY'
-from notebook.auth import passwd
+PYCODE=$(cat <<'PY'
 import os
-print(passwd(os.environ['JUPYTER_PASSWORD']))
+pwd = os.environ.get("JUPYTER_PASSWORD")
+ph  = os.environ.get("JUPYTER_PASSWORD_HASH")
+
+if ph:
+    print(ph)
+elif pwd:
+    # intenta primero en notebook, si no, en jupyter_server
+    try:
+        from notebook.auth import passwd
+    except Exception:
+        try:
+            from jupyter_server.auth import passwd
+        except Exception:
+            from jupyter_server.auth.security import passwd
+    print(passwd(pwd))
+else:
+    raise SystemExit("ERROR: define JUPYTER_PASSWORD o JUPYTER_PASSWORD_HASH")
 PY
 )
-else
-  echo "ERROR: define JUPYTER_PASSWORD o JUPYTER_PASSWORD_HASH en variables de entorno."
-  exit 1
-fi
+
+HASH=$(python -c "$PYCODE")
 
 exec jupyter lab \
   --ip=0.0.0.0 \
