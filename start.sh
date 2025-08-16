@@ -40,3 +40,4 @@ exec jupyter lab \
   --ServerApp.token="" \
   --ServerApp.trust_xheaders=True \
   --SchedulerApp.db_url="$SCHEDULER_DB_URL"
+ 
