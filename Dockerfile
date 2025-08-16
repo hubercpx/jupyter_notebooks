@@ -1,13 +1,20 @@
-FROM python:3.9
+FROM python:3.11-slim
 
-# Instalar Jupyter
-RUN pip install jupyter pandas numpy matplotlib
+# Dependencias básicas
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential curl && \
+    rm -rf /var/lib/apt/lists/*
 
-# Crear carpeta de trabajo
+# Paquetes Python necesarios (incluye 'notebook' para generar hash)
+RUN pip install --no-cache-dir jupyterlab notebook pandas numpy matplotlib
+
 WORKDIR /app
-
-# Puerto de Jupyter
 EXPOSE 8888
- 
-# Ejecutar Jupyter Notebook sin token
-CMD ["jupyter", "notebook", "--ip=0.0.0.0", "--port=8888", "--allow-root", "--no-browser", "--NotebookApp.token=''"]
+ENV PORT=8888
+
+# Copia el script de arranque y dale permisos
+COPY start.sh /app/start.sh
+RUN chmod +x /app/start.sh
+
+# Arranque: script que calcula hash y lanza Jupyter
+CMD ["/app/start.sh"]
